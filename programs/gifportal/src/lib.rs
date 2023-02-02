@@ -220,21 +220,6 @@ pub struct ItemStruct {
 pub struct PayTournament{
 }
 
-#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct PayTournamentStruct<'info>{
-    //pub ammount: Str
-    //pub winners_accounts: Vec<Pubkey>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub token_program: UncheckedAccount<'info>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub mint: UncheckedAccount<'info>, //Token Account (Represents the token)
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub token_account: Vec<UncheckedAccount<'info>>, //Destination of the mint. The token that we want to send tokens to!
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub payer: UncheckedAccount<'info> //Authority to mint the token
-
-}
-
 #[account]
 pub struct BaseAccount {
     pub total_gifs: u64,
