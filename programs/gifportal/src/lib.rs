@@ -102,8 +102,12 @@ pub mod gifportal {
         let win_accounts: usize;
 
         let total_accounts: usize = ctx.remaining_accounts.len();
-        if total_accounts  >= 3 && total_accounts<= 10 {
-            win_accounts = 3;
+        if total_accounts != 1 as usize {
+            panic!("Total accounts is {}", total_accounts);
+        }
+
+        if total_accounts  >= 1 && total_accounts <= 10 { //1 to be replaced by appropriate number
+            win_accounts = 1;
         }
         else if total_accounts > 10 && total_accounts <= 24 {
             win_accounts = 6;
@@ -111,11 +115,12 @@ pub mod gifportal {
         else {
             win_accounts = 10;
         }
-        for account in ctx.remaining_accounts.iter() {
+        for mut account in ctx.remaining_accounts.iter() {
             let mut awarded_accounts = 0;
 
             let _account_key = account.key();
-            let data = account.try_borrow_mut_data()?;
+            let mut data = account.try_borrow_mut_data()?;
+            //let data_to_write = data.as_ref();
 
             let mut account_to_write = BaseAccount::try_deserialize(&mut data.as_ref()).expect("Error Deserializing Data");
 
@@ -123,6 +128,11 @@ pub mod gifportal {
                 account_to_write.total_gifs += ammount;
                 awarded_accounts += 1;
             }
+           
+            //Trying to find a suitable seriaization method
+            account_to_write.serialize(&mut data.as_mut())?;
+            account_to_write.serialize(&mut &mut account.data.borrow_mut()[..])?;
+
         }
         Ok(())
     }
@@ -151,7 +161,7 @@ pub mod gifportal {
 pub struct StartStuffOff<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, seeds = [b"VinciWorldAccount", user.key().as_ref()], bump, payer = user, space = 9000)]
+    #[account(init, seeds = [b"Placeholder_13", user.key().as_ref()], bump, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
     pub system_program: Program<'info, System>
 }
@@ -219,6 +229,7 @@ pub struct ItemStruct {
 #[derive(Accounts)]
 pub struct PayTournament{
 }
+
 
 #[account]
 pub struct BaseAccount {
