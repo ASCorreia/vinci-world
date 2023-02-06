@@ -76,26 +76,6 @@ pub mod gifportal {
         Ok(())
     }
 
-    /*pub fn pay_tournament2<'a>(ctx:Context<PayTournament>, remaining_accounts: Vec<AccountInfo>) -> Result<()>
-    {   
-        let base_accounts: Vec<BaseAccount> = remaining_accounts.iter().map(|a| a.try_into()?).collect();
-
-        for base_account in base_accounts()
-        {
-            let add_ammount_ctx = Context::new(
-                ctx.program_id,
-                &mut base_account,
-                &[],
-                [],
-            );
-
-            let _result = add_ammount(add_ammount_ctx, 64)?;
-        }
-        Ok(())
-    }*/
-
-    //try doing a context with the unchecked accounts or account info as Vec (sometghing similar to minttoken), create the vec inside function and convert to baseaccount with try_into() or into() or even to_base_account()
-
     ///pay_tournament function will deserialize the provided remaining accounts in order to add the rewarded ammount to the appropriate account
     pub fn pay_tournament(ctx:Context<PayTournament>, ammount: u64) -> Result<()>
     {   
