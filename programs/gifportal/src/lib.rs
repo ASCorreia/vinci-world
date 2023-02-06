@@ -122,6 +122,7 @@ pub mod gifportal {
             let mut data = account.try_borrow_mut_data()?;
             //let data_to_write = data.as_ref();
 
+            //Deserialize the data from the account and save it in an Account variable
             let mut account_to_write = BaseAccount::try_deserialize(&mut data.as_ref()).expect("Error Deserializing Data");
 
             while awarded_accounts != win_accounts {
@@ -129,9 +130,8 @@ pub mod gifportal {
                 awarded_accounts += 1;
             }
            
-            //Trying to find a suitable seriaization method
-            account_to_write.serialize(&mut data.as_mut())?;
-            account_to_write.serialize(&mut &mut account.data.borrow_mut()[..])?;
+            //Serialize the data back
+            account_to_write.try_serialize(&mut &mut data.as_mut())?;
 
         }
         Ok(())
