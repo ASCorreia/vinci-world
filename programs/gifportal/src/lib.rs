@@ -111,7 +111,7 @@ pub mod gifportal {
             }
            
             //Serialize the data back
-            account_to_write.try_serialize(&mut &mut data.as_mut())?;
+            account_to_write.try_serialize(&mut data.as_mut())?;
 
         }
         Ok(())
