@@ -139,6 +139,7 @@ describe("Token-Contract", () => {
         assert.equal(fetchAccount2.totalGifs.toString(), "15");
 
         const tournamentPay = await program.methods.payTournament(new anchor.BN(30)).accounts({
+            user: key.wallet.publicKey,
         }).remainingAccounts([{pubkey: vinciWorldPDA, isSigner: false, isWritable: true}]).rpc();
 
         let fetchAccount3 = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
