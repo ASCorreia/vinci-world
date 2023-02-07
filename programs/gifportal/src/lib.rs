@@ -105,9 +105,11 @@ pub mod gifportal {
             //Deserialize the data from the account and save it in an Account variable
             let mut account_to_write = BaseAccount::try_deserialize(&mut data.as_ref()).expect("Error Deserializing Data");
 
-            while awarded_accounts != win_accounts {
-                account_to_write.total_gifs += ammount;
-                awarded_accounts += 1;
+            if ctx.accounts.user.is_signer == true {
+                if awarded_accounts != win_accounts {
+                    account_to_write.total_gifs += ammount;
+                    awarded_accounts += 1;
+                }
             }
            
             //Serialize the data back
@@ -206,8 +208,9 @@ pub struct ItemStruct {
     pub user_address: Pubkey
 }
 
-#[derive(Accounts)]
-pub struct PayTournament{
+pub struct PayTournament<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>
 }
 
 
