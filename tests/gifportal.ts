@@ -141,6 +141,8 @@ describe("Token-Contract", () => {
         const tournamentPay = await program.methods.payTournament(new anchor.BN(30)).accounts({
             user: key.wallet.publicKey,
         }).remainingAccounts([{pubkey: vinciWorldPDA, isSigner: false, isWritable: true}]).rpc();
+        console.log("Tournament transaction details: ", tournamentPay);
+        console.log("Signer wallet address (Provider): ", key.wallet.publicKey);
 
         let fetchAccount3 = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
         console.log("Tournament won - 30 Tokens awarded");
