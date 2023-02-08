@@ -11,7 +11,8 @@ pub mod gifportal {
     use super::*;
 
     pub fn start_stuff_off(ctx: Context<StartStuffOff>) -> Result<()> {
-        let pubkey = Pubkey::from_str("6eGKgDhFAaLYkxoDMyx2NU4RyrSKfCXdRmqtjT7zodxQ").unwrap();
+        //let pubkey = Pubkey::from_str("6eGKgDhFAaLYkxoDMyx2NU4RyrSKfCXdRmqtjT7zodxQ").unwrap();
+        let pubkey = Pubkey::from_str("AHYic562KhgtAEkb1rSesqS87dFYRcfXb4WwWus3Zc9C").unwrap();
         let base_account = &mut ctx.accounts.base_account;
         let result = base_account.key();
         msg!(&result.to_string());
@@ -105,7 +106,7 @@ pub mod gifportal {
             //Deserialize the data from the account and save it in an Account variable
             let mut account_to_write = BaseAccount::try_deserialize(&mut data.as_ref()).expect("Error Deserializing Data");
 
-            if ctx.accounts.user.is_signer == true {
+            if ctx.accounts.user.is_signer == true  && ctx.accounts.user.to_account_info().key() == account_to_write.owner {
                 if awarded_accounts != win_accounts {
                     account_to_write.total_gifs += ammount;
                     awarded_accounts += 1;
