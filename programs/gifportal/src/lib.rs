@@ -49,6 +49,8 @@ pub mod gifportal {
         Ok(())
     }
 
+    //TBD Create function to mint token according to baseaccount ammount. Try using two different contexts (Improve later)
+    
     pub fn mint_token(ctx: Context<MintToken>, ammount: u64) -> Result<()> {
         let cpi_accounts = MintTo {
             mint: ctx.accounts.mint.to_account_info(),
