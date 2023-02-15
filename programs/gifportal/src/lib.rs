@@ -49,7 +49,16 @@ pub mod gifportal {
         Ok(())
     }
 
-    //TBD Create function to mint token according to baseaccount ammount. Try using two different contexts (Improve later)
+    /*
+        TBD Create function to mint token according to baseaccount ammount. Try using two different contexts (Improve later)
+        Accounts to have the PubKey of the user? In that case, a simple "mint operation" can send the tokens to the appropriate account
+        Accounts to not have the PubKey of the user? In that case, two contexts might be needed, or more information from the client
+        
+        TBD Create funtion to transfer tokens from accounts to vault (our account) to be used for tournament registration
+        
+        TBD Create function to transfer tokens from vault to accounts
+        Signer should be our wallet, signed from the client
+    */
     
     pub fn mint_token(ctx: Context<MintToken>, ammount: u64) -> Result<()> {
         let cpi_accounts = MintTo {
