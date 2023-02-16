@@ -51,12 +51,15 @@ pub mod gifportal {
 
     /*
         TBD Create function to mint token according to baseaccount ammount. Try using two different contexts (Improve later)
-        Accounts to have the PubKey of the user? In that case, a simple "mint operation" can send the tokens to the appropriate account
-        Accounts to not have the PubKey of the user? In that case, two contexts might be needed, or more information from the client
+        Accounts to have the PubKey / ATA of the user? In that case, a simple "mint operation" can send the tokens to the appropriate account
+        Accounts to not have the PubKey of the user? In that case, two contexts might be needed, or more information from the client, or a get
+        token address can be used
         
         TBD Create funtion to transfer tokens from accounts to vault (our account) to be used for tournament registration
+        Should ATAs be created directly from the client during the baseAccount creation? In that case, the program would only get the address
+        Shoud ATAs be created by the program? More complexity and no added value?
         
-        TBD Create function to transfer tokens from vault to accounts
+        TBD Create function to transfer tokens from vault to accounts (from an ATA owned by our wallet)
         Signer should be our wallet, signed from the client
     */
     
