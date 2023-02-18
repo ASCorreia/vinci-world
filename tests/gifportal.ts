@@ -95,7 +95,7 @@ describe("Token-Contract", () => {
 
         const [vinciWorldPDA, _] = await web3.PublicKey.findProgramAddress(
         [
-          anchor.utils.bytes.utf8.encode("Placeholder_13"),
+          anchor.utils.bytes.utf8.encode("Placeholder_32"),
           key.wallet.publicKey.toBuffer(),
         ],
         program.programId
@@ -148,7 +148,26 @@ describe("Token-Contract", () => {
         console.log("Tournament won - 30 Tokens awarded");
         console.log("Total Ammount Of Tokens", fetchAccount3.totalGifs.toString());
         assert.equal(fetchAccount3.totalGifs.toString(), "45");
+
+        //Starts the Mint Operation
+        console.log("Starting Token Claim operation");
+        //Executes our smart contract to mint our token into our specified ATA
+        const tx2 = await program.methods.claimTokens().accounts({
+            mint: mintKey.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenAccount: associatedTokenAccount,
+            payer: key.wallet.publicKey,
+            baseAccount: vinciWorldPDA,
+        }).rpc();
+        //Transaction logs
+        console.log("Your transaction signature ", tx);
+        const claimed = (await program.provider.connection.getParsedAccountInfo(associatedTokenAccount)).value.data.parsed.info.tokenAmount.amount;
+        console.log("Number of tokens in mint account: (mint - burn - losses + wins + tournament wins", claimed);
+        assert.equal(claimed, new anchor.BN(48));
+
+        let fetchAccountAfterClaim = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
+        console.log("Claiming Operation finished");
+        console.log("Total Ammount Of Tokens Remaining to be Claimed", fetchAccountAfterClaim.totalGifs.toString());
+        assert.equal(fetchAccountAfterClaim.totalGifs.toString(), "0");
     });
 });
-
-
