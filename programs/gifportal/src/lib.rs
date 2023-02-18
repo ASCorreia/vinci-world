@@ -180,7 +180,7 @@ pub mod gifportal {
 pub struct StartStuffOff<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, seeds = [b"Placeholder_13", user.key().as_ref()], bump, payer = user, space = 9000)]
+    #[account(init, seeds = [b"Placeholder_32", user.key().as_ref()], bump, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
     pub system_program: Program<'info, System>
 }
