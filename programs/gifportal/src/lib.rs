@@ -77,17 +77,24 @@ pub mod gifportal {
         Ok(())
     }
 
-    pub fn burn_token(ctx: Context<BurnToken>, ammount: u64) -> Result<()> {
-        let cpi_accounts = Burn {
-            mint: ctx.accounts.mint.to_account_info(),
-            from: ctx.accounts.token_account.to_account_info(),
-            authority: ctx.accounts.payer.to_account_info(),
-        };
+    pub fn claim_tokens(ctx: Context<ClaimTokens>) -> Result<()> {
+        let account_to_claim = &mut ctx.accounts.base_account;
+        let signer_key = ctx.accounts.payer.to_account_info().key();
 
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        if account_to_claim.owner == signer_key && account_to_claim.total_gifs != 0 {
+            let cpi_accounts = MintTo {
+                mint: ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.token_account.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+            };
+    
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    
+            token::mint_to(cpi_ctx, account_to_claim.total_gifs)?;
+            account_to_claim.total_gifs = 0;
+        }
 
-        token::burn(cpi_ctx, ammount)?;
         Ok(())
     }
 
@@ -110,8 +117,9 @@ pub mod gifportal {
         else {
             win_accounts = 10;
         }
-        for mut account in ctx.remaining_accounts.iter() {
-            let mut awarded_accounts = 0;
+
+        let mut awarded_accounts = 0;
+        for account in ctx.remaining_accounts.iter() {
 
             let _account_key = account.key();
             let mut data = account.try_borrow_mut_data()?;
@@ -137,6 +145,20 @@ pub mod gifportal {
     pub fn add_ammount(ctx: Context<AddAmount>, ammount: u64) -> Result<()> {
         let base_account = &mut ctx.accounts.base_account;
         base_account.total_gifs += ammount;
+        Ok(())
+    }
+
+    pub fn burn_token(ctx: Context<BurnToken>, ammount: u64) -> Result<()> {
+        let cpi_accounts = Burn {
+            mint: ctx.accounts.mint.to_account_info(),
+            from: ctx.accounts.token_account.to_account_info(),
+            authority: ctx.accounts.payer.to_account_info(),
+        };
+
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        token::burn(cpi_ctx, ammount)?;
         Ok(())
     }
 
@@ -223,9 +245,26 @@ pub struct ItemStruct {
     pub user_address: Pubkey
 }
 
+#[derive(Accounts)]
 pub struct PayTournament<'info> {
     #[account(mut)]
     pub user: Signer<'info>
+}
+
+#[derive(Accounts)]
+pub struct ClaimTokens<'info> {
+    pub token_program: Program<'info, Token>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)] //Is mut needed?? To be checked, as we dont modify the account!
+    pub mint: UncheckedAccount<'info>, //Token Account (Represents the token)
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub token_account: UncheckedAccount<'info>, //Destination of the mint. The token that we want to send to tokens to!
+    #[account(mut)]
+    pub base_account: Account<'info, BaseAccount>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub payer: UncheckedAccount<'info>, //Authority to mint the token (Shall be the Signer as well)
 }
 
 
