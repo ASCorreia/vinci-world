@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program::invoke;
 use anchor_spl::token;
 use anchor_spl::token::{Token, InitializeMint, MintTo, Burn, Transfer};
 use std::str::FromStr;
+use mpl_token_metadata::instruction::{create_master_edition_v3, create_metadata_accounts_v3};
 
 //declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 declare_id!("8Ecahw39DA3GPcxP2PShkThCG3gdbhRwDUeAgjbjZPS9");
@@ -49,12 +51,7 @@ pub mod gifportal {
         Ok(())
     }
 
-    /*
-        TBD Create function to mint token according to baseaccount ammount. Try using two different contexts (Improve later)
-        Accounts to have the PubKey / ATA of the user? In that case, a simple "mint operation" can send the tokens to the appropriate account
-        Accounts to not have the PubKey of the user? In that case, two contexts might be needed, or more information from the client, or a get
-        token address can be used
-        
+    /*  
         TBD Create funtion to transfer tokens from accounts to vault (our account) to be used for tournament registration
         Should ATAs be created directly from the client during the baseAccount creation? In that case, the program would only get the address
         Shoud ATAs be created by the program? More complexity and no added value?
@@ -77,6 +74,9 @@ pub mod gifportal {
         Ok(())
     }
 
+    /* 
+        TBD At the moment the function is receiving the computed PDA. Should it receive the public key of the user?
+    */
     pub fn claim_tokens(ctx: Context<ClaimTokens>) -> Result<()> {
         let account_to_claim = &mut ctx.accounts.base_account;
         let signer_key = ctx.accounts.payer.to_account_info().key();
@@ -174,13 +174,107 @@ pub mod gifportal {
         }
         Ok(())
     }
+
+    /*
+        for details regarding the metadata account and master edition account, refer to metaplex docs at
+        https://docs.metaplex.com/programs/token-metadata/accounts
+     */
+    pub fn mint_nft(ctx: Context<MintNFT>, creator_key: Pubkey, uri: String, title: String) -> Result<()> {
+        msg!("Initializing Mint NFT");
+        let cpi_accounts = MintTo {
+            mint: ctx.accounts.mint.to_account_info(),
+            to: ctx.accounts.token_account.to_account_info(),
+            authority: ctx.accounts.payer.to_account_info(),
+        };
+        msg!("CPI Accounts Assigned");
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        msg!("CPI Program Assigned");
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        msg!("CPI Context Assigned");
+        token::mint_to(cpi_ctx, 1)?;
+        msg!("Token Minted !!!");
+        let account_info = vec![
+            ctx.accounts.metadata.to_account_info(),
+            ctx.accounts.mint.to_account_info(),
+            ctx.accounts.mint_authority.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_metadata_program.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
+        ];
+        msg!("Account Info Assigned");
+        let creator = vec![
+            mpl_token_metadata::state::Creator {
+                address: creator_key,
+                verified: false,
+                share: 100,
+            },
+            mpl_token_metadata::state::Creator {
+                address: ctx.accounts.mint_authority.key(),
+                verified: false,
+                share: 0,
+            },
+        ];
+        msg!("Creator Assigned");
+        let symbol = std::string::ToString::to_string("symb");
+        invoke(
+            &create_metadata_accounts_v3(
+                ctx.accounts.token_metadata_program.key(), //program_id
+                ctx.accounts.metadata.key(), //metadata_account
+                ctx.accounts.mint.key(), //mint
+                ctx.accounts.mint_authority.key(), //mint_authority
+                ctx.accounts.payer.key(), //payer
+                ctx.accounts.payer.key(), //update_authority
+                title, //name
+                symbol, //symbol
+                uri, //uri
+                Some(creator), //creators
+                1, //seller_fee_basis_points
+                true, //update_authority_is_signer
+                false, //is_mutable
+                None, //collection
+                None, //uses
+                None, //collection_details
+            ),
+            account_info.as_slice(),
+        )?;
+        msg!("Metadata Account Created !!!");
+        let master_edition_infos = vec![
+            ctx.accounts.master_edition.to_account_info(),
+            ctx.accounts.mint.to_account_info(),
+            ctx.accounts.mint_authority.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.metadata.to_account_info(),
+            ctx.accounts.token_metadata_program.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
+        ];
+        msg!("Master Edition Account Infos Assigned");
+        invoke(
+            &create_master_edition_v3(
+                ctx.accounts.token_metadata_program.key(), //program_id
+                ctx.accounts.master_edition.key(), //edition
+                ctx.accounts.mint.key(), //mint
+                ctx.accounts.payer.key(), //update_authority
+                ctx.accounts.mint_authority.key(), //mint_authority
+                ctx.accounts.metadata.key(), //metadata (metadata_account)
+                ctx.accounts.payer.key(), //payer
+                Some(0), //max_supply
+            ),
+            master_edition_infos.as_slice(),
+        )?;
+        msg!("Master Edition Nft Minted !!!");
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
 pub struct StartStuffOff<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, seeds = [b"Placeholder_32", user.key().as_ref()], bump, payer = user, space = 9000)]
+    #[account(init, seeds = [b"Placeholder_33", user.key().as_ref()], bump, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
     pub system_program: Program<'info, System>
 }
@@ -267,6 +361,33 @@ pub struct ClaimTokens<'info> {
     pub payer: UncheckedAccount<'info>, //Authority to mint the token (Shall be the Signer as well)
 }
 
+#[derive(Accounts)]
+pub struct MintNFT<'info> {
+    #[account(mut)]
+    pub mint_authority: Signer<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub mint: UncheckedAccount<'info>,
+    //#[account(mut)]
+    pub token_program: Program<'info, Token>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    pub token_metadata_program: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub payer: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    pub rent: AccountInfo<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    pub master_edition: UncheckedAccount<'info>,
+}
 
 #[account]
 pub struct BaseAccount {
