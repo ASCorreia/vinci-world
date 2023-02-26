@@ -14,6 +14,34 @@ describe("Token-Contract", () => {
     const program = anchor.workspace.Gifportal as Program<Gifportal>;
 
     const mintKey: anchor.web3.Keypair = anchor.web3.Keypair.generate();
+    const NFTmintKey: anchor.web3.Keypair = anchor.web3.Keypair.generate();
+
+    const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+    const getMetadata = async (mint: anchor.web3.PublicKey): Promise<anchor.web3.PublicKey> => {
+        return (
+          await anchor.web3.PublicKey.findProgramAddress(
+            [
+              Buffer.from("metadata"),
+              TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+              mint.toBuffer(),
+            ],
+            TOKEN_METADATA_PROGRAM_ID
+          )
+        )[0];
+      };
+    const getMasterEdition = async (mint: anchor.web3.PublicKey): Promise<anchor.web3.PublicKey> => {
+        return (
+          await anchor.web3.PublicKey.findProgramAddress(
+            [
+              Buffer.from("metadata"),
+              TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+              mint.toBuffer(),
+              Buffer.from("edition"),
+            ],
+            TOKEN_METADATA_PROGRAM_ID
+          )
+        )[0];
+      };
 
     let associatedTokenAccount: anchor.web3.PublicKey = key.wallet.publicKey;
 
@@ -95,7 +123,7 @@ describe("Token-Contract", () => {
 
         const [vinciWorldPDA, _] = await web3.PublicKey.findProgramAddress(
         [
-          anchor.utils.bytes.utf8.encode("Placeholder_32"),
+          anchor.utils.bytes.utf8.encode("Placeholder_39"),
           key.wallet.publicKey.toBuffer(),
         ],
         program.programId
@@ -169,5 +197,69 @@ describe("Token-Contract", () => {
         console.log("Claiming Operation finished");
         console.log("Total Ammount Of Tokens Remaining to be Claimed", fetchAccountAfterClaim.totalGifs.toString());
         assert.equal(fetchAccountAfterClaim.totalGifs.toString(), "0");
+    });
+
+    it("Mint an NFT", async() => {
+        //const key = key.wallet.publicKey;
+        const lamports: number = await program.provider.connection.getMinimumBalanceForRentExemption(MINT_SIZE);
+
+        //Get the ATA for a token on a public key (but might not exist yet)
+        let receiver = new anchor.web3.PublicKey("6eGKgDhFAaLYkxoDMyx2NU4RyrSKfCXdRmqtjT7zodxQ");
+        associatedTokenAccount = await getAssociatedTokenAddress(NFTmintKey.publicKey, receiver); //key.wallet.publicKey
+
+        //Fires a list of instructions
+        const mint_nft_tx = new anchor.web3.Transaction().add(
+            //Use anchor to creante an account from the key we created
+            anchor.web3.SystemProgram.createAccount({
+                fromPubkey: key.wallet.publicKey,
+                newAccountPubkey: NFTmintKey.publicKey,
+                space: MINT_SIZE,
+                programId: TOKEN_PROGRAM_ID,
+                lamports,
+            }),
+            //creates, through a transaction, our mint account that is controlled by our anchor wallet (key)
+            createInitializeMintInstruction(NFTmintKey.publicKey, 0, key.wallet.publicKey, key.wallet.publicKey),
+            
+            //Creates the ATA account that is associated with our mint on our anchor wallet (key)
+            createAssociatedTokenAccountInstruction(key.wallet.publicKey, associatedTokenAccount, receiver, NFTmintKey.publicKey)
+        );
+
+        //Sends and create the transaction
+        console.log("Sending transaction");
+        const res = await key.sendAndConfirm(mint_nft_tx, [NFTmintKey]);
+
+        console.log(await program.provider.connection.getParsedAccountInfo(NFTmintKey.publicKey));
+
+        console.log("Account: ", res);
+        console.log("Mint Key: ", NFTmintKey.publicKey.toString());
+        console.log("User: ", key.wallet.publicKey.toString());
+
+
+        //Starts the Mint Operation
+        console.log("Starting the NFT Mint Operation");
+        const metadataAddress = await getMetadata(NFTmintKey.publicKey);
+        const masterEdition = await getMasterEdition(NFTmintKey.publicKey);
+        //Executes our smart contract to mint our token into our specified ATA
+        const tx = await program.rpc.mintNft(
+          new anchor.web3.PublicKey("7FeQ5jSCW71SYfxLtsEdmFSd45xFGiunRG7MZATdPoKu"),
+          "https://arweave.net/ajlO0jbT8-yqZ5C_dJb_XojCr6sFOk48Yfq89GQRTzY",
+          "Vinci World #1",
+          {
+            accounts: {
+              mintAuthority: key.wallet.publicKey,
+              mint: NFTmintKey.publicKey,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              metadata: metadataAddress,
+              tokenAccount: associatedTokenAccount,
+              tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+              payer: key.wallet.publicKey,
+              systemProgram: web3.SystemProgram.programId,
+              rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+              masterEdition: masterEdition,
+            },
+          }
+        );
+        console.log("Your transaction signature", tx);       
+        console.log("NFT Mint Operation Finished!");
     });
 });
