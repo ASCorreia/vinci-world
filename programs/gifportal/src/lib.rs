@@ -217,7 +217,7 @@ pub mod gifportal {
             },
         ];
         msg!("Creator Assigned");
-        let symbol = std::string::ToString::to_string("symb");
+        let symbol = std::string::ToString::to_string("VINCI");
         invoke(
             &create_metadata_accounts_v3(
                 ctx.accounts.token_metadata_program.key(), //program_id
@@ -230,7 +230,7 @@ pub mod gifportal {
                 symbol, //symbol
                 uri, //uri
                 Some(creator), //creators
-                1, //seller_fee_basis_points
+                500, //seller_fee_basis_points
                 true, //update_authority_is_signer
                 false, //is_mutable
                 None, //collection
@@ -274,7 +274,7 @@ pub mod gifportal {
 pub struct StartStuffOff<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, seeds = [b"Placeholder_33", user.key().as_ref()], bump, payer = user, space = 9000)]
+    #[account(init, seeds = [b"Placeholder_39", user.key().as_ref()], bump, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
     pub system_program: Program<'info, System>
 }
