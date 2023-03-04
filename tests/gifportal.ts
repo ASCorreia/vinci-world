@@ -6,6 +6,7 @@ import {TOKEN_PROGRAM_ID, MINT_SIZE, createAssociatedTokenAccountInstruction, ge
 import assert from 'assert';
 import { publicKey } from "@project-serum/anchor/dist/cjs/utils";
 
+//TBD to test the upcoming transfer function, generate a new keypair (vault), create an ATA and transfer the tokens from const key into the vault
 
 describe("Token-Contract", () => {
     const key = anchor.AnchorProvider.env();
