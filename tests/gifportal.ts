@@ -6,7 +6,6 @@ import {TOKEN_PROGRAM_ID, MINT_SIZE, createAssociatedTokenAccountInstruction, ge
 import assert from 'assert';
 import { publicKey } from "@project-serum/anchor/dist/cjs/utils";
 
-//TBD to test the upcoming transfer function, generate a new keypair (vault), create an ATA and transfer the tokens from const key into the vault
 
 describe("Token-Contract", () => {
     const key = anchor.AnchorProvider.env();
@@ -124,7 +123,7 @@ describe("Token-Contract", () => {
 
         const [vinciWorldPDA, _] = await web3.PublicKey.findProgramAddress(
         [
-          anchor.utils.bytes.utf8.encode("Placeholder_39"),
+          anchor.utils.bytes.utf8.encode("Placeholder_41"),
           key.wallet.publicKey.toBuffer(),
         ],
         program.programId
@@ -140,7 +139,7 @@ describe("Token-Contract", () => {
 
         console.log("Vinci World PDA account created with Transaction", tx);
 
-        /*
+        /* Deprecated method
         const tx = await program.rpc.startStuffOff({
             accounts: {
               baseAccount: account.publicKey,
