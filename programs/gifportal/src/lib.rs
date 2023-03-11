@@ -268,13 +268,38 @@ pub mod gifportal {
         msg!("Master Edition Nft Minted !!!");
         Ok(())
     }
+
+    pub fn start_tournament(ctx: Context<StartTournament>) -> Result<()> {
+        let pubkey = Pubkey::from_str("AHYic562KhgtAEkb1rSesqS87dFYRcfXb4WwWus3Zc9C").unwrap();
+
+        let tournament = &mut ctx.accounts.tournament;
+        tournament.tournament_list = Vec::new();
+        tournament.owner = pubkey;
+
+        Ok(())
+    }
+
+    pub fn add_tournament_participant(ctx: Context<AddPartcipant>) -> Result<()> {
+        let base_account = &mut ctx.accounts.new_participant;
+        let tournament_list = &mut ctx.accounts.tournament_list;
+
+        if ctx.accounts.user.is_signer == true && ctx.accounts.user.key() == tournament_list.owner {
+            tournament_list.tournament_list.push(base_account.key());
+        }
+        Ok(())
+    }
+
+    /*
+        Create a new tournament payout function based on the new tournament account. Transform the Pubkeys inside the vector to account_infos,
+        deserialize the data, modify the ammount variable and serialize the data back
+     */
 }
 
 #[derive(Accounts)]
 pub struct StartStuffOff<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, seeds = [b"Placeholder_42", user.key().as_ref()], bump, payer = user, space = 9000)]
+    #[account(init, seeds = [b"Placeholder_44", user.key().as_ref()], bump, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
     pub system_program: Program<'info, System>
 }
@@ -389,9 +414,31 @@ pub struct MintNFT<'info> {
     pub master_edition: UncheckedAccount<'info>,
 }
 
+#[derive(Accounts)]
+pub struct StartTournament<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+    #[account(init, seeds = [b"Tournament_1", user.key().as_ref()], bump, payer = user, space = 4000)]
+    pub tournament: Account<'info, Tournament>,
+    pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct AddPartcipant<'info> {
+    pub user: Signer<'info>,
+    pub tournament_list: Account<'info, Tournament>,
+    pub new_participant: Account<'info, BaseAccount>,
+}
+
 #[account]
 pub struct BaseAccount {
     pub total_amount: u64,
     pub owner: Pubkey,
     pub gif_list: Vec<ItemStruct>
+}
+
+#[account]
+pub struct Tournament {
+    pub owner: Pubkey,
+    pub tournament_list: Vec<Pubkey>
 }
