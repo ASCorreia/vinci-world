@@ -151,10 +151,10 @@ describe("Token-Contract", () => {
 
         let fetchAccount = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
         
-        console.log("Total Ammount Of Tokens", fetchAccount.totalGifs.toString());
+        console.log("Total Ammount Of Tokens", fetchAccount.totalAmount.toString());
         console.log("Owner of the account: ", fetchAccount.owner.toString());
         console.log("Address of the provider: ", key.wallet.publicKey.toString());
-        assert.equal(fetchAccount.totalGifs.toString(), "0");
+        assert.equal(fetchAccount.totalAmount.toString(), "0");
 
         const addValue = await program.methods.addAmmount(new anchor.BN(15)).accounts({
             baseAccount: vinciWorldPDA, //account.publicKey,
@@ -163,8 +163,8 @@ describe("Token-Contract", () => {
 
         let fetchAccount2 = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
         console.log("Match won - 15 Tokens awarded");
-        console.log("Total Ammount Of Tokens", fetchAccount2.totalGifs.toString());
-        assert.equal(fetchAccount2.totalGifs.toString(), "15");
+        console.log("Total Ammount Of Tokens", fetchAccount2.totalAmount.toString());
+        assert.equal(fetchAccount2.totalAmount.toString(), "15");
 
         const tournamentPay = await program.methods.payTournament(new anchor.BN(30)).accounts({
             user: key.wallet.publicKey,
@@ -174,8 +174,8 @@ describe("Token-Contract", () => {
 
         let fetchAccount3 = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
         console.log("Tournament won - 30 Tokens awarded");
-        console.log("Total Ammount Of Tokens", fetchAccount3.totalGifs.toString());
-        assert.equal(fetchAccount3.totalGifs.toString(), "45");
+        console.log("Total Ammount Of Tokens", fetchAccount3.totalAmount.toString());
+        assert.equal(fetchAccount3.totalAmount.toString(), "45");
 
         //Starts the Mint Operation
         console.log("Starting Token Claim operation");
@@ -195,8 +195,8 @@ describe("Token-Contract", () => {
 
         let fetchAccountAfterClaim = await program.account.baseAccount.fetch(vinciWorldPDA); //account.publicKey
         console.log("Claiming Operation finished");
-        console.log("Total Ammount Of Tokens Remaining to be Claimed", fetchAccountAfterClaim.totalGifs.toString());
-        assert.equal(fetchAccountAfterClaim.totalGifs.toString(), "0");
+        console.log("Total Ammount Of Tokens Remaining to be Claimed", fetchAccountAfterClaim.totalAmount.toString());
+        assert.equal(fetchAccountAfterClaim.totalAmount.toString(), "0");
     });
 
     it("Mint an NFT", async() => {
