@@ -18,7 +18,7 @@ pub mod gifportal {
         let base_account = &mut ctx.accounts.base_account;
         let result = base_account.key();
         msg!(&result.to_string());
-        base_account.total_gifs = 0;
+        base_account.total_amount = 0;
         base_account.owner = pubkey;
 
         Ok(())
@@ -34,7 +34,7 @@ pub mod gifportal {
         };
 
         base_account.gif_list.push(item);
-        base_account.total_gifs += 1;
+        base_account.total_amount += 1;
         Ok(())
     }
 
@@ -44,7 +44,7 @@ pub mod gifportal {
         for n in 0..base_account.gif_list.len() {
             if user_address == base_account.gif_list[n].user_address.to_string()
             {
-                base_account.total_gifs -= 1;
+                base_account.total_amount -= 1;
                 base_account.gif_list.remove(n);
             }
         }
@@ -81,7 +81,7 @@ pub mod gifportal {
         let account_to_claim = &mut ctx.accounts.base_account;
         let signer_key = ctx.accounts.payer.to_account_info().key();
 
-        if account_to_claim.owner == signer_key && account_to_claim.total_gifs != 0 {
+        if account_to_claim.owner == signer_key && account_to_claim.total_amount != 0 {
             let cpi_accounts = MintTo {
                 mint: ctx.accounts.mint.to_account_info(),
                 to: ctx.accounts.token_account.to_account_info(),
@@ -91,8 +91,8 @@ pub mod gifportal {
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     
-            token::mint_to(cpi_ctx, account_to_claim.total_gifs)?;
-            account_to_claim.total_gifs = 0;
+            token::mint_to(cpi_ctx, account_to_claim.total_amount)?;
+            account_to_claim.total_amount = 0;
         }
 
         Ok(())
@@ -130,7 +130,7 @@ pub mod gifportal {
 
             if ctx.accounts.user.is_signer == true  && ctx.accounts.user.to_account_info().key() == account_to_write.owner {
                 if awarded_accounts != win_accounts {
-                    account_to_write.total_gifs += ammount;
+                    account_to_write.total_amount += ammount;
                     awarded_accounts += 1;
                 }
             }
@@ -144,7 +144,7 @@ pub mod gifportal {
 
     pub fn add_ammount(ctx: Context<AddAmount>, ammount: u64) -> Result<()> {
         let base_account = &mut ctx.accounts.base_account;
-        base_account.total_gifs += ammount;
+        base_account.total_amount += ammount;
         Ok(())
     }
 
@@ -164,13 +164,13 @@ pub mod gifportal {
 
     pub fn remove_ammount(ctx: Context<RemoveAmmount>, ammount: u64) -> Result<()> {
         let base_account = &mut ctx.accounts.base_account;
-        if ammount < base_account.total_gifs
+        if ammount < base_account.total_amount
         {
-            base_account.total_gifs -= ammount;
+            base_account.total_amount -= ammount;
         }
         else
         {
-            base_account.total_gifs = 0;
+            base_account.total_amount = 0;
         }
         Ok(())
     }
@@ -274,7 +274,7 @@ pub mod gifportal {
 pub struct StartStuffOff<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, seeds = [b"Placeholder_41", user.key().as_ref()], bump, payer = user, space = 9000)]
+    #[account(init, seeds = [b"Placeholder_42", user.key().as_ref()], bump, payer = user, space = 9000)]
     pub base_account: Account<'info, BaseAccount>,
     pub system_program: Program<'info, System>
 }
@@ -391,7 +391,7 @@ pub struct MintNFT<'info> {
 
 #[account]
 pub struct BaseAccount {
-    pub total_gifs: u64,
+    pub total_amount: u64,
     pub owner: Pubkey,
     pub gif_list: Vec<ItemStruct>
 }
