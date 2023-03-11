@@ -123,7 +123,7 @@ describe("Token-Contract", () => {
 
         const [vinciWorldPDA, _] = await web3.PublicKey.findProgramAddress(
         [
-          anchor.utils.bytes.utf8.encode("Placeholder_41"),
+          anchor.utils.bytes.utf8.encode("Placeholder_44"),
           key.wallet.publicKey.toBuffer(),
         ],
         program.programId
@@ -184,8 +184,8 @@ describe("Token-Contract", () => {
             mint: mintKey.publicKey,
             tokenProgram: TOKEN_PROGRAM_ID,
             tokenAccount: associatedTokenAccount,
-            payer: key.wallet.publicKey,
             baseAccount: vinciWorldPDA,
+            payer: key.wallet.publicKey,
         }).rpc();
         //Transaction logs
         console.log("Your transaction signature ", tx);
@@ -198,7 +198,7 @@ describe("Token-Contract", () => {
         console.log("Total Ammount Of Tokens Remaining to be Claimed", fetchAccountAfterClaim.totalAmount.toString());
         assert.equal(fetchAccountAfterClaim.totalAmount.toString(), "0");
     });
-
+    
     it("Mint an NFT", async() => {
         //const key = key.wallet.publicKey;
         const lamports: number = await program.provider.connection.getMinimumBalanceForRentExemption(MINT_SIZE);
