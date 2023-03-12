@@ -5,13 +5,14 @@ import {Gifportal} from "../target/types/gifportal";
 import {TOKEN_PROGRAM_ID, MINT_SIZE, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, createInitializeMintInstruction} from "@solana/spl-token"; //0.3.5
 import assert from 'assert';
 import { publicKey } from "@project-serum/anchor/dist/cjs/utils";
+import { VinciWorld } from "../target/types/vinci_world";
 
 
 describe("Token-Contract", () => {
     const key = anchor.AnchorProvider.env();
     anchor.setProvider(key);
 
-    const program = anchor.workspace.Gifportal as Program<Gifportal>;
+    const program = anchor.workspace.VinciWorld as Program<VinciWorld>;
 
     const mintKey: anchor.web3.Keypair = anchor.web3.Keypair.generate();
     const NFTmintKey: anchor.web3.Keypair = anchor.web3.Keypair.generate();
@@ -123,7 +124,7 @@ describe("Token-Contract", () => {
 
         const [vinciWorldPDA, _] = await web3.PublicKey.findProgramAddress(
         [
-          anchor.utils.bytes.utf8.encode("Placeholder_44"),
+          anchor.utils.bytes.utf8.encode("Placeholder_0"),
           key.wallet.publicKey.toBuffer(),
         ],
         program.programId
