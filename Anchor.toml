@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.devnet]
-gifportal = "8Ecahw39DA3GPcxP2PShkThCG3gdbhRwDUeAgjbjZPS9"
+vinci_world = "63kVYVJGuX4xP6EoqJK76Ajk3k5x1KfRVP3KjbLdGpKb"
 
 [registry]
 url = "https://api.apr.dev"
