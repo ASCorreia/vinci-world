@@ -6,13 +6,16 @@ use std::str::FromStr;
 use mpl_token_metadata::instruction::{create_master_edition_v3, create_metadata_accounts_v3};
 
 //declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
-declare_id!("8Ecahw39DA3GPcxP2PShkThCG3gdbhRwDUeAgjbjZPS9");
+declare_id!("63kVYVJGuX4xP6EoqJK76Ajk3k5x1KfRVP3KjbLdGpKb");
 
 pub mod contexts;
+pub mod error;
+
 pub use contexts::*;
+pub use error::*;
 
 #[program]
-pub mod gifportal {
+pub mod vinci_world {
     use super::*;
 
     pub fn start_stuff_off(ctx: Context<StartStuffOff>) -> Result<()> {
@@ -24,33 +27,6 @@ pub mod gifportal {
         base_account.total_amount = 0;
         base_account.owner = pubkey;
 
-        Ok(())
-    }
-
-    pub fn add_gif(ctx: Context<AddGif>, gif_link: String) -> Result<()> {
-        let base_account = &mut ctx.accounts.base_account;
-        let user = &mut ctx.accounts.user;
-
-        let item = ItemStruct{
-            ammount: gif_link.to_string(),
-            user_address: *user.to_account_info().key
-        };
-
-        base_account.gif_list.push(item);
-        base_account.total_amount += 1;
-        Ok(())
-    }
-
-    pub fn remove_gif(ctx: Context<RemoveGif>, user_address: String) -> Result<()> {
-        let base_account = &mut ctx.accounts.base_account;
-
-        for n in 0..base_account.gif_list.len() {
-            if user_address == base_account.gif_list[n].user_address.to_string()
-            {
-                base_account.total_amount -= 1;
-                base_account.gif_list.remove(n);
-            }
-        }
         Ok(())
     }
 
@@ -106,11 +82,10 @@ pub mod gifportal {
     {   
         let win_accounts: usize;
 
-        let total_accounts: usize = ctx.remaining_accounts.len();
+        let total_accounts: usize = ctx.remaining_accounts.len();      
         if total_accounts != 1 as usize {
             panic!("Total accounts is {}", total_accounts);
         }
-
         if total_accounts  >= 1 && total_accounts <= 10 { //1 to be replaced by appropriate number
             win_accounts = 1;
         }
@@ -140,8 +115,8 @@ pub mod gifportal {
            
             //Serialize the data back
             account_to_write.try_serialize(&mut data.as_mut())?;
-
         }
+
         Ok(())
     }
 
@@ -166,15 +141,15 @@ pub mod gifportal {
     }
 
     pub fn remove_ammount(ctx: Context<RemoveAmmount>, ammount: u64) -> Result<()> {
+       
         let base_account = &mut ctx.accounts.base_account;
-        if ammount < base_account.total_amount
+        require!(ammount <= base_account.total_amount, CustomError::InsufficientBalanceSpl);
+        
+        if ammount <= base_account.total_amount
         {
             base_account.total_amount -= ammount;
         }
-        else
-        {
-            base_account.total_amount = 0;
-        }
+        
         Ok(())
     }
 
