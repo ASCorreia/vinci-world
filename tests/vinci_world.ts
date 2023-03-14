@@ -124,7 +124,7 @@ describe("Token-Contract", () => {
 
         const [vinciWorldPDA, _] = await web3.PublicKey.findProgramAddress(
         [
-          anchor.utils.bytes.utf8.encode("Placeholder_2"),
+          anchor.utils.bytes.utf8.encode("VinciWorld_1"),
           key.wallet.publicKey.toBuffer(),
         ],
         program.programId
