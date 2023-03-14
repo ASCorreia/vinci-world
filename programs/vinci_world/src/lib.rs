@@ -19,7 +19,6 @@ pub mod vinci_world {
     use super::*;
 
     pub fn start_stuff_off(ctx: Context<StartStuffOff>) -> Result<()> {
-        //let pubkey = Pubkey::from_str("6eGKgDhFAaLYkxoDMyx2NU4RyrSKfCXdRmqtjT7zodxQ").unwrap();
         let pubkey = Pubkey::from_str("AHYic562KhgtAEkb1rSesqS87dFYRcfXb4WwWus3Zc9C").unwrap();
         let base_account = &mut ctx.accounts.base_account;
         let result = base_account.key();
@@ -31,9 +30,8 @@ pub mod vinci_world {
     }
 
     /*  
-        TBD Create funtion to transfer tokens from accounts to vault (our account) to be used for tournament registration
-        Should ATAs be created directly from the client during the baseAccount creation? In that case, the program would only get the address
-        Shoud ATAs be created by the program? More complexity and no added value?
+        TBD Create funtion to transfer tokens from accounts to vault (our account) to be used for tournament registration.
+        ATAs should be created directly from the client during the baseAccount creation. In that case, the program would only get the address
         
         TBD Create function to transfer tokens from vault to accounts (from an ATA owned by our wallet)
         Signer should be our wallet, signed from the client
@@ -54,13 +52,15 @@ pub mod vinci_world {
     }
 
     /* 
-        TBD At the moment the function is receiving the computed PDA. Should it receive the public key of the user?
+        TBD At the moment the function is receiving the computed PDA. To be discussed if it is the best approach
     */
     pub fn claim_tokens(ctx: Context<ClaimTokens>) -> Result<()> {
         let account_to_claim = &mut ctx.accounts.base_account;
-        let signer_key = ctx.accounts.payer.to_account_info().key();
+        
+        //Security check to be used when the frontend / backend is updated 
+        //require!(ctx.accounts.payer.is_signer == true && ctx.accounts.payer.to_account_info().key() == account_to_claim.owner, CustomError::WrongSigner);
 
-        if account_to_claim.owner == signer_key && account_to_claim.total_amount != 0 {
+        if account_to_claim.total_amount != 0 {
             let cpi_accounts = MintTo {
                 mint: ctx.accounts.mint.to_account_info(),
                 to: ctx.accounts.token_account.to_account_info(),
@@ -79,7 +79,11 @@ pub mod vinci_world {
 
     ///pay_tournament function will deserialize the provided remaining accounts in order to add the rewarded ammount to the appropriate account
     pub fn pay_tournament(ctx:Context<PayTournament>, ammount: u64) -> Result<()>
-    {   
+    {
+        /*
+        Tournament payout function shall be updated in the future with a proper payout structure (still according to the total amount of participants).
+        Has there is not yet a defined final structure, the following win account are just used for reference and are not the final values.  
+        */   
         let win_accounts: usize;
 
         let total_accounts: usize = ctx.remaining_accounts.len();      
@@ -122,6 +126,10 @@ pub mod vinci_world {
 
     pub fn add_ammount(ctx: Context<AddAmount>, ammount: u64) -> Result<()> {
         let base_account = &mut ctx.accounts.base_account;
+        
+        //Security check to be used when the frontend / backend is updated 
+        //require!(ctx.accounts.owner.is_signer == true && *ctx.accounts.owner.key == base_account.owner, CustomError::WrongSigner);
+
         base_account.total_amount += ammount;
         Ok(())
     }
@@ -144,6 +152,7 @@ pub mod vinci_world {
        
         let base_account = &mut ctx.accounts.base_account;
         require!(ammount <= base_account.total_amount, CustomError::InsufficientBalanceSpl);
+        require!(ctx.accounts.owner.is_signer == true && *ctx.accounts.owner.key == base_account.owner, CustomError::WrongSigner);
         
         if ammount <= base_account.total_amount
         {
@@ -268,7 +277,6 @@ pub mod vinci_world {
     }
 
     /*
-        Create a new tournament payout function based on the new tournament account. Transform the Pubkeys inside the vector to account_infos,
-        deserialize the data, modify the ammount variable and serialize the data back
-     */
+        TBD Create a new tournament payout function based on the new tournament account.
+    */
 }
