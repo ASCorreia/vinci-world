@@ -6,4 +6,6 @@ pub enum CustomError {
     InsufficientBalanceSpl,
     #[msg("Insufficient Balance - SOL")]
     InsufficientBalanceSol,
+    #[msg("Wrong Signer")]
+    WrongSigner,
 }
