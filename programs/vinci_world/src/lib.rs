@@ -51,25 +51,27 @@ pub mod vinci_world {
         Ok(())
     }
 
+    /* 
+        TBD At the moment the function is receiving the computed PDA. To be discussed if it is the best approach
+    */
     pub fn claim_tokens(ctx: Context<ClaimTokens>) -> Result<()> {
         let account_to_claim = &mut ctx.accounts.base_account;
         
         //Security check to be used when the frontend / backend is updated 
         //require!(ctx.accounts.payer.is_signer == true && ctx.accounts.payer.to_account_info().key() == account_to_claim.owner, CustomError::WrongSigner);
 
-        if account_to_claim.total_amount != 0 {
-            let cpi_accounts = MintTo {
-                mint: ctx.accounts.mint.to_account_info(),
-                to: ctx.accounts.token_account.to_account_info(),
-                authority: ctx.accounts.payer.to_account_info(),
-            };
+        require!(account_to_claim.total_amount != 0, CustomError::InsufficientBalanceSpl);
+        let cpi_accounts = MintTo {
+            mint: ctx.accounts.mint.to_account_info(),
+            to: ctx.accounts.token_account.to_account_info(),
+            authority: ctx.accounts.payer.to_account_info(),
+        };
     
-            let cpi_program = ctx.accounts.token_program.to_account_info();
-            let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     
-            token::mint_to(cpi_ctx, account_to_claim.total_amount)?;
-            account_to_claim.total_amount = 0;
-        }
+        token::mint_to(cpi_ctx, account_to_claim.total_amount)?;
+        account_to_claim.total_amount = 0;
 
         Ok(())
     }
