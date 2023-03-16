@@ -51,9 +51,6 @@ pub mod vinci_world {
         Ok(())
     }
 
-    /* 
-        TBD At the moment the function is receiving the computed PDA. To be discussed if it is the best approach
-    */
     pub fn claim_tokens(ctx: Context<ClaimTokens>) -> Result<()> {
         let account_to_claim = &mut ctx.accounts.base_account;
         
@@ -88,7 +85,7 @@ pub mod vinci_world {
 
         let total_accounts: usize = ctx.remaining_accounts.len();      
         if total_accounts != 1 as usize {
-            panic!("Total accounts is {}", total_accounts);
+            panic!("Total accounts is {}", total_accounts); //Only for debugging / testing purposes. No panic! intended to be used
         }
         if total_accounts  >= 1 && total_accounts <= 10 { //1 to be replaced by appropriate number
             win_accounts = 1;
@@ -154,10 +151,7 @@ pub mod vinci_world {
         require!(ammount <= base_account.total_amount, CustomError::InsufficientBalanceSpl);
         require!(ctx.accounts.owner.is_signer == true && *ctx.accounts.owner.key == base_account.owner, CustomError::WrongSigner);
         
-        if ammount <= base_account.total_amount
-        {
-            base_account.total_amount -= ammount;
-        }
+        base_account.total_amount -= ammount;
         
         Ok(())
     }
@@ -270,7 +264,8 @@ pub mod vinci_world {
         let base_account = &mut ctx.accounts.new_participant;
         let tournament_list = &mut ctx.accounts.tournament_list;
 
-        if ctx.accounts.user.is_signer == true && ctx.accounts.user.key() == tournament_list.owner {
+        require!(ctx.accounts.user.is_signer == true && ctx.accounts.user.key() == tournament_list.owner, CustomError::WrongSigner);
+        if tournament_list.tournament_list.contains(&base_account.key()) == false {
             tournament_list.tournament_list.push(base_account.key());
         }
         Ok(())
