@@ -104,7 +104,7 @@ pub mod vinci_world {
 
             let _account_key = account.key();
             let mut data = account.try_borrow_mut_data()?;
-            //let data_to_write = data.as_ref(); use this one as mutable reference in deserialize?
+            //let data_to_write = data.as_ref();
 
             //Deserialize the data from the account and save it in an Account variable
             let mut account_to_write = BaseAccount::try_deserialize(&mut data.as_ref()).expect("Error Deserializing Data");
