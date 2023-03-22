@@ -1,11 +1,5 @@
 use crate::*;
 
-#[account]
-pub struct Tournament {
-    pub owner: Pubkey,
-    pub tournament_list: Vec<Pubkey>
-}
-
 #[derive(Accounts)]
 pub struct StartTournament<'info> {
     #[account(mut)]
@@ -26,4 +20,16 @@ pub struct AddPartcipant<'info> {
 pub struct PayTournament<'info> {
     #[account(mut)]
     pub user: Signer<'info>
+}
+
+#[derive(Accounts)]
+pub struct PayTournament2<'info> {
+    pub tournament: Account<'info, Tournament>,
+    pub owner: Signer<'info>,
+}
+
+#[account]
+pub struct Tournament {
+    pub owner: Pubkey,
+    pub tournament_list: Vec<Pubkey>
 }
