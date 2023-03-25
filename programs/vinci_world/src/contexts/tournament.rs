@@ -31,5 +31,6 @@ pub struct PayTournament2<'info> {
 #[account]
 pub struct Tournament {
     pub owner: Pubkey,
-    pub tournament_list: Vec<Pubkey>
+    pub tournament_list: Vec<Pubkey>,
+    pub prize_pool: u32,
 }

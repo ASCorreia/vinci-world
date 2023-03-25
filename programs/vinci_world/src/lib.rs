@@ -123,6 +123,32 @@ pub mod vinci_world {
         Ok(())
     }
 
+    pub fn start_tournament(ctx: Context<StartTournament>, prize_pool: u32) -> Result<()> {
+        let pubkey = Pubkey::from_str("AHYic562KhgtAEkb1rSesqS87dFYRcfXb4WwWus3Zc9C").unwrap(); //to be updated with appropriate wallet PubKey
+
+        let tournament = &mut ctx.accounts.tournament;
+        tournament.tournament_list = Vec::new();
+        tournament.owner = pubkey;
+        tournament.prize_pool = prize_pool;
+
+        Ok(())
+    }
+
+    pub fn add_tournament_participant(ctx: Context<AddPartcipant>) -> Result<()> {
+        let base_account = &mut ctx.accounts.new_participant;
+        let tournament_list = &mut ctx.accounts.tournament_list;
+
+        require!(ctx.accounts.user.is_signer == true && ctx.accounts.user.key() == tournament_list.owner, CustomError::WrongSigner);
+        if tournament_list.tournament_list.contains(&base_account.key()) == false {
+            tournament_list.tournament_list.push(base_account.key());
+        }
+        Ok(())
+    }
+
+    /*
+        TBD Create a new tournament payout function based on the new tournament account.
+    */
+
     pub fn add_ammount(ctx: Context<AddAmount>, ammount: u64) -> Result<()> {
         let base_account = &mut ctx.accounts.base_account;
         
@@ -252,28 +278,4 @@ pub mod vinci_world {
         Ok(())
     }
 
-    pub fn start_tournament(ctx: Context<StartTournament>) -> Result<()> {
-        let pubkey = Pubkey::from_str("AHYic562KhgtAEkb1rSesqS87dFYRcfXb4WwWus3Zc9C").unwrap();
-
-        let tournament = &mut ctx.accounts.tournament;
-        tournament.tournament_list = Vec::new();
-        tournament.owner = pubkey;
-
-        Ok(())
-    }
-
-    pub fn add_tournament_participant(ctx: Context<AddPartcipant>) -> Result<()> {
-        let base_account = &mut ctx.accounts.new_participant;
-        let tournament_list = &mut ctx.accounts.tournament_list;
-
-        require!(ctx.accounts.user.is_signer == true && ctx.accounts.user.key() == tournament_list.owner, CustomError::WrongSigner);
-        if tournament_list.tournament_list.contains(&base_account.key()) == false {
-            tournament_list.tournament_list.push(base_account.key());
-        }
-        Ok(())
-    }
-
-    /*
-        TBD Create a new tournament payout function based on the new tournament account.
-    */
 }
